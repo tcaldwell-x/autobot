@@ -230,7 +230,7 @@ export class AutoBot {
       const recommendations = await recommendationService.generateRecommendations(travelContext);
       
       // Format for tweet with link to our website (includes OG preview)
-      const replyText = recommendationService.formatForTweet(recommendations);
+      const replyText = await recommendationService.formatForTweet(recommendations);
       
       // Post reply
       console.log('[Bot] Posting reply...');

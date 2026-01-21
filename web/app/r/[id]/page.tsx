@@ -1,17 +1,26 @@
 import { Metadata } from 'next';
-import { decodeRecommendation } from '@/lib/types';
+import { redis } from '@/lib/redis';
+import { RecommendationData } from '@/lib/types';
 import { notFound } from 'next/navigation';
 
 interface PageProps {
   params: { id: string };
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const data = decodeRecommendation(params.id);
-  
-  if (!data) {
-    return { title: 'Not Found' };
+async function getData(id: string): Promise<RecommendationData | null> {
+  try {
+    const data = await redis.get(`r:${id}`);
+    if (!data) return null;
+    return typeof data === 'string' ? JSON.parse(data) : data as RecommendationData;
+  } catch {
+    return null;
   }
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const data = await getData(params.id);
+  
+  if (!data) return { title: 'Not Found' };
   
   const title = `${data.destination} Travel Picks | AutoBot`;
   const description = data.hotel 
@@ -24,31 +33,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title,
     description,
-    openGraph: {
-      title,
-      description,
-      images: [{ url: ogImageUrl, width: 1200, height: 630 }],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: [ogImageUrl],
-    },
+    openGraph: { title, description, images: [{ url: ogImageUrl, width: 1200, height: 630 }] },
+    twitter: { card: 'summary_large_image', title, description, images: [ogImageUrl] },
   };
 }
 
-export default function RecommendationPage({ params }: PageProps) {
-  const data = decodeRecommendation(params.id);
+export default async function RecommendationPage({ params }: PageProps) {
+  const data = await getData(params.id);
   
-  if (!data) {
-    notFound();
-  }
+  if (!data) notFound();
   
   return (
     <main className="min-h-screen p-6 md:p-12">
       <div className="max-w-2xl mx-auto">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="text-5xl mb-4">🤖✈️</div>
           <h1 className="text-3xl md:text-4xl font-bold mb-2">
@@ -58,7 +55,6 @@ export default function RecommendationPage({ params }: PageProps) {
           </h1>
         </div>
         
-        {/* Hotel Card */}
         {data.hotel && (
           <div className="bg-slate-800/70 rounded-2xl p-6 mb-6 border border-slate-700">
             <div className="flex items-start gap-4">
@@ -79,7 +75,6 @@ export default function RecommendationPage({ params }: PageProps) {
           </div>
         )}
         
-        {/* Activity Card */}
         {data.activity && (
           <div className="bg-slate-800/70 rounded-2xl p-6 mb-6 border border-slate-700">
             <div className="flex items-start gap-4">
@@ -92,7 +87,6 @@ export default function RecommendationPage({ params }: PageProps) {
           </div>
         )}
         
-        {/* Book Now Button */}
         <a
           href={data.searchUrl}
           target="_blank"
@@ -102,7 +96,6 @@ export default function RecommendationPage({ params }: PageProps) {
           Book on Expedia →
         </a>
         
-        {/* Footer */}
         <div className="text-center mt-8 text-gray-500 text-sm">
           <p>Powered by Expedia Group</p>
         </div>

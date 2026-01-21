@@ -10,16 +10,13 @@ import { getExpediaClient, isExpediaConfigured } from './expedia';
 import { config } from '../config';
 
 /**
- * Minimal recommendation data for URL encoding
- * Single-char keys to minimize length
+ * Data sent to website API for storage
  */
-interface CompactData {
-  d: string;        // destination
-  h?: string;       // hotel name
-  p?: number;       // hotel price (just the number)
-  r?: number;       // hotel rating
-  a?: string;       // activity title
-  ap?: number;      // activity price
+interface StoreRequest {
+  destination: string;
+  hotel?: { name: string; price: string; rating?: number };
+  activity?: { title: string; price: string };
+  searchUrl: string;
 }
 
 /**
@@ -205,9 +202,9 @@ export class RecommendationService {
    * Format recommendations for a tweet reply (280 char limit)
    * Links to our website which has OG preview images
    */
-  formatForTweet(recommendations: RecommendationResponse): string {
+  async formatForTweet(recommendations: RecommendationResponse): Promise<string> {
     const hotel = recommendations.hotels[0];
-    const websiteUrl = this.generateWebsiteUrl(recommendations);
+    const websiteUrl = await this.generateWebsiteUrl(recommendations);
     
     if (!hotel) {
       return `Check out hotels in ${recommendations.destination}!\n\n${websiteUrl}`;
@@ -230,29 +227,42 @@ export class RecommendationService {
   }
   
   /**
-   * Generate website URL with minimal encoded data
+   * Generate short website URL via API storage
    */
-  private generateWebsiteUrl(recommendations: RecommendationResponse): string {
+  private async generateWebsiteUrl(recommendations: RecommendationResponse): Promise<string> {
     const hotel = recommendations.hotels[0];
     const activity = recommendations.activities[0];
     
-    const data: CompactData = {
-      d: recommendations.destination.slice(0, 20), // cap destination length
+    const data: StoreRequest = {
+      destination: recommendations.destination,
+      searchUrl: recommendations.searchUrl,
     };
     
     if (hotel) {
-      data.h = hotel.name.slice(0, 30); // cap hotel name
-      data.p = parseInt(hotel.price.replace(/[^0-9]/g, '')) || 0;
-      if (hotel.rating) data.r = hotel.rating;
+      data.hotel = { name: hotel.name, price: hotel.price, rating: hotel.rating };
     }
-    
     if (activity) {
-      data.a = activity.title.slice(0, 25); // cap activity title
-      data.ap = parseInt(activity.price.replace(/[^0-9]/g, '')) || 0;
+      data.activity = { title: activity.title, price: activity.price };
     }
     
-    const encoded = Buffer.from(JSON.stringify(data)).toString('base64url');
-    return `${config.websiteUrl}/r/${encoded}`;
+    try {
+      const res = await fetch(`${config.websiteUrl}/api/recommendations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      
+      if (res.ok) {
+        const { url } = await res.json() as { url: string };
+        console.log(`[Recommendations] Short URL: ${url}`);
+        return url;
+      }
+    } catch (err) {
+      console.error('[Recommendations] API error:', err);
+    }
+    
+    // Fallback to Expedia direct
+    return recommendations.searchUrl;
   }
   
   /**

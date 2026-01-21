@@ -1,17 +1,5 @@
 /**
- * Compact data encoded in URL
- */
-export interface CompactData {
-  d: string;        // destination
-  h?: string;       // hotel name
-  p?: number;       // hotel price
-  r?: number;       // hotel rating
-  a?: string;       // activity title
-  ap?: number;      // activity price
-}
-
-/**
- * Full recommendation data for display
+ * Recommendation data stored in KV
  */
 export interface RecommendationData {
   destination: string;
@@ -25,41 +13,17 @@ export interface RecommendationData {
     price: string;
   };
   searchUrl: string;
+  createdAt: number;
 }
 
 /**
- * Decode compact data from URL and expand to full data
+ * Generate a short unique ID (8 chars)
  */
-export function decodeRecommendation(encoded: string): RecommendationData | null {
-  try {
-    const json = Buffer.from(encoded, 'base64url').toString('utf-8');
-    const compact: CompactData = JSON.parse(json);
-    
-    const destination = compact.d;
-    const searchUrl = `https://www.expedia.com/Hotel-Search?destination=${encodeURIComponent(destination)}`;
-    
-    const data: RecommendationData = {
-      destination,
-      searchUrl,
-    };
-    
-    if (compact.h) {
-      data.hotel = {
-        name: compact.h,
-        price: `$${compact.p}/night`,
-        rating: compact.r,
-      };
-    }
-    
-    if (compact.a) {
-      data.activity = {
-        title: compact.a,
-        price: `$${compact.ap}`,
-      };
-    }
-    
-    return data;
-  } catch {
-    return null;
+export function generateShortId(): string {
+  const chars = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let id = '';
+  for (let i = 0; i < 8; i++) {
+    id += chars[Math.floor(Math.random() * chars.length)];
   }
+  return id;
 }
