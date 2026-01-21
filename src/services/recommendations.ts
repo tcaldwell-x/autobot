@@ -10,27 +10,16 @@ import { getExpediaClient, isExpediaConfigured } from './expedia';
 import { config } from '../config';
 
 /**
- * Recommendation data for website link encoding
+ * Minimal recommendation data for URL encoding
+ * Single-char keys to minimize length
  */
-interface WebsiteRecommendationData {
-  destination: string;
-  checkin?: string;
-  checkout?: string;
-  hotel?: {
-    name: string;
-    price: string;
-    rating?: number;
-    amenities?: string[];
-  };
-  activity?: {
-    title: string;
-    price: string;
-    duration?: string;
-  };
-  hotelUrl?: string;
-  searchUrl: string;
-  tweetId?: string;
-  username?: string;
+interface CompactData {
+  d: string;        // destination
+  h?: string;       // hotel name
+  p?: number;       // hotel price (just the number)
+  r?: number;       // hotel rating
+  a?: string;       // activity title
+  ap?: number;      // activity price
 }
 
 /**
@@ -216,16 +205,9 @@ export class RecommendationService {
    * Format recommendations for a tweet reply (280 char limit)
    * Links to our website which has OG preview images
    */
-  formatForTweet(
-    recommendations: RecommendationResponse,
-    tweetId?: string,
-    username?: string
-  ): string {
+  formatForTweet(recommendations: RecommendationResponse): string {
     const hotel = recommendations.hotels[0];
-    const activity = recommendations.activities[0];
-    
-    // Generate website URL with encoded recommendation data
-    const websiteUrl = this.generateWebsiteUrl(recommendations, tweetId, username);
+    const websiteUrl = this.generateWebsiteUrl(recommendations);
     
     if (!hotel) {
       return `Check out hotels in ${recommendations.destination}!\n\n${websiteUrl}`;
@@ -248,46 +230,28 @@ export class RecommendationService {
   }
   
   /**
-   * Generate website URL with encoded recommendation data
+   * Generate website URL with minimal encoded data
    */
-  private generateWebsiteUrl(
-    recommendations: RecommendationResponse,
-    tweetId?: string,
-    username?: string
-  ): string {
+  private generateWebsiteUrl(recommendations: RecommendationResponse): string {
     const hotel = recommendations.hotels[0];
     const activity = recommendations.activities[0];
     
-    const data: WebsiteRecommendationData = {
-      destination: recommendations.destination,
-      checkin: recommendations.checkin,
-      checkout: recommendations.checkout,
-      searchUrl: recommendations.searchUrl,
-      tweetId,
-      username,
+    const data: CompactData = {
+      d: recommendations.destination.slice(0, 20), // cap destination length
     };
     
     if (hotel) {
-      data.hotel = {
-        name: hotel.name,
-        price: hotel.price,
-        rating: hotel.rating,
-        amenities: hotel.amenities?.slice(0, 4),
-      };
-      data.hotelUrl = hotel.bookingUrl;
+      data.h = hotel.name.slice(0, 30); // cap hotel name
+      data.p = parseInt(hotel.price.replace(/[^0-9]/g, '')) || 0;
+      if (hotel.rating) data.r = hotel.rating;
     }
     
     if (activity) {
-      data.activity = {
-        title: activity.title,
-        price: activity.price,
-        duration: activity.duration,
-      };
+      data.a = activity.title.slice(0, 25); // cap activity title
+      data.ap = parseInt(activity.price.replace(/[^0-9]/g, '')) || 0;
     }
     
-    // Encode as base64url
     const encoded = Buffer.from(JSON.stringify(data)).toString('base64url');
-    
     return `${config.websiteUrl}/r/${encoded}`;
   }
   

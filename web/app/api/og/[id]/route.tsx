@@ -10,7 +10,6 @@ export async function GET(
   const data = decodeRecommendation(params.id);
   
   if (!data) {
-    // Return a default error image
     return new ImageResponse(
       (
         <div
@@ -30,10 +29,7 @@ export async function GET(
           </div>
         </div>
       ),
-      {
-        width: 1200,
-        height: 630,
-      }
+      { width: 1200, height: 630 }
     );
   }
 
@@ -49,14 +45,8 @@ export async function GET(
           padding: 60,
         }}
       >
-        {/* Header with logo and app name */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            marginBottom: 40,
-          }}
-        >
+        {/* Header */}
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 40 }}>
           <span style={{ fontSize: 50, marginRight: 16 }}>🤖✈️</span>
           <span
             style={{
@@ -72,31 +62,11 @@ export async function GET(
         </div>
 
         {/* Destination */}
-        <div
-          style={{
-            fontSize: 72,
-            fontWeight: 700,
-            color: 'white',
-            marginBottom: 10,
-          }}
-        >
+        <div style={{ fontSize: 72, fontWeight: 700, color: 'white', marginBottom: 40 }}>
           {data.destination}
         </div>
-        
-        {/* Dates */}
-        {data.checkin && data.checkout && (
-          <div
-            style={{
-              fontSize: 24,
-              color: '#94a3b8',
-              marginBottom: 40,
-            }}
-          >
-            {data.checkin} → {data.checkout}
-          </div>
-        )}
 
-        {/* Hotel recommendation */}
+        {/* Hotel */}
         {data.hotel && (
           <div
             style={{
@@ -110,41 +80,15 @@ export async function GET(
           >
             <span style={{ fontSize: 50, marginRight: 20 }}>🏨</span>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <div
-                style={{
-                  fontSize: 36,
-                  fontWeight: 600,
-                  color: 'white',
-                  marginBottom: 8,
-                }}
-              >
+              <div style={{ fontSize: 36, fontWeight: 600, color: 'white', marginBottom: 8 }}>
                 {data.hotel.name}
               </div>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 20,
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: 32,
-                    fontWeight: 600,
-                    color: '#4ade80',
-                  }}
-                >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                <span style={{ fontSize: 32, fontWeight: 600, color: '#4ade80' }}>
                   {data.hotel.price}
                 </span>
                 {data.hotel.rating && (
-                  <span
-                    style={{
-                      fontSize: 28,
-                      color: '#fbbf24',
-                      display: 'flex',
-                      alignItems: 'center',
-                    }}
-                  >
+                  <span style={{ fontSize: 28, color: '#fbbf24' }}>
                     ⭐ {data.hotel.rating}
                   </span>
                 )}
@@ -167,23 +111,10 @@ export async function GET(
           >
             <span style={{ fontSize: 50, marginRight: 20 }}>🎯</span>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <div
-                style={{
-                  fontSize: 36,
-                  fontWeight: 600,
-                  color: 'white',
-                  marginBottom: 8,
-                }}
-              >
+              <div style={{ fontSize: 36, fontWeight: 600, color: 'white', marginBottom: 8 }}>
                 {data.activity.title}
               </div>
-              <span
-                style={{
-                  fontSize: 32,
-                  fontWeight: 600,
-                  color: '#4ade80',
-                }}
-              >
+              <span style={{ fontSize: 32, fontWeight: 600, color: '#4ade80' }}>
                 {data.activity.price}
               </span>
             </div>
@@ -204,9 +135,6 @@ export async function GET(
         </div>
       </div>
     ),
-    {
-      width: 1200,
-      height: 630,
-    }
+    { width: 1200, height: 630 }
   );
 }

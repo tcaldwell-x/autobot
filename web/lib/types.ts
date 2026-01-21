@@ -1,52 +1,64 @@
 /**
- * Recommendation data that gets encoded in the URL
+ * Compact data encoded in URL
+ */
+export interface CompactData {
+  d: string;        // destination
+  h?: string;       // hotel name
+  p?: number;       // hotel price
+  r?: number;       // hotel rating
+  a?: string;       // activity title
+  ap?: number;      // activity price
+}
+
+/**
+ * Full recommendation data for display
  */
 export interface RecommendationData {
-  // Destination info
   destination: string;
-  checkin?: string;
-  checkout?: string;
-  
-  // Hotel recommendation
   hotel?: {
     name: string;
     price: string;
     rating?: number;
-    amenities?: string[];
   };
-  
-  // Activity recommendation
   activity?: {
     title: string;
     price: string;
-    duration?: string;
   };
-  
-  // Booking URLs
-  hotelUrl?: string;
   searchUrl: string;
-  
-  // Tweet context
-  tweetId?: string;
-  username?: string;
 }
 
 /**
- * Encode recommendation data for URL
- */
-export function encodeRecommendation(data: RecommendationData): string {
-  const json = JSON.stringify(data);
-  // Use base64url encoding (URL-safe)
-  return Buffer.from(json).toString('base64url');
-}
-
-/**
- * Decode recommendation data from URL
+ * Decode compact data from URL and expand to full data
  */
 export function decodeRecommendation(encoded: string): RecommendationData | null {
   try {
     const json = Buffer.from(encoded, 'base64url').toString('utf-8');
-    return JSON.parse(json);
+    const compact: CompactData = JSON.parse(json);
+    
+    const destination = compact.d;
+    const searchUrl = `https://www.expedia.com/Hotel-Search?destination=${encodeURIComponent(destination)}`;
+    
+    const data: RecommendationData = {
+      destination,
+      searchUrl,
+    };
+    
+    if (compact.h) {
+      data.hotel = {
+        name: compact.h,
+        price: `$${compact.p}/night`,
+        rating: compact.r,
+      };
+    }
+    
+    if (compact.a) {
+      data.activity = {
+        title: compact.a,
+        price: `$${compact.ap}`,
+      };
+    }
+    
+    return data;
   } catch {
     return null;
   }
