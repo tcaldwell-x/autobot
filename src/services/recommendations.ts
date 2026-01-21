@@ -246,7 +246,10 @@ export class RecommendationService {
     }
     
     try {
-      const res = await fetch(`${config.websiteUrl}/api/recommendations`, {
+      const apiUrl = `${config.websiteUrl}/api/recommendations`;
+      console.log(`[Recommendations] Calling API: ${apiUrl}`);
+      
+      const res = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -256,6 +259,9 @@ export class RecommendationService {
         const { url } = await res.json() as { url: string };
         console.log(`[Recommendations] Short URL: ${url}`);
         return url;
+      } else {
+        const errText = await res.text();
+        console.error(`[Recommendations] API failed (${res.status}): ${errText}`);
       }
     } catch (err) {
       console.error('[Recommendations] API error:', err);
