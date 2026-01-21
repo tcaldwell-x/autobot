@@ -1,0 +1,23 @@
+{
+  "name": "autobot",
+  "version": "1.0.0",
+  "description": "X/Twitter bot that responds with hotel/airline recommendations when mentioned",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "setup-rules": "ts-node src/scripts/setup-rules.ts"
+  },
+  "keywords": ["x", "twitter", "bot", "travel", "recommendations"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2"
+  }
+}
