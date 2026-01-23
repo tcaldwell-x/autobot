@@ -16,7 +16,7 @@ export const config = {
   botUsername: process.env.BOT_USERNAME || 'autobot_demo',
   
   // Website URL (for OG preview links)
-  websiteUrl: process.env.WEBSITE_URL || 'https://autobot.vercel.app',
+  websiteUrl: process.env.WEBSITE_URL || 'https://reserve-bot.vercel.app',
   
   // Grok API (xAI) for intelligent conversation understanding
   grokApiKey: process.env.GROK_API_KEY || '',

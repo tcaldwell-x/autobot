@@ -45,7 +45,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     }
   }
   
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://autobot-five.vercel.app';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://reserve-bot.vercel.app';
   const ogImageUrl = `${baseUrl}/api/og/${params.id}`;
   
   return {

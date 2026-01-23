@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     console.log(`[API] Stored ${data.type || 'travel'} data with id: ${id}`);
     console.log(`[API] hasReservation: ${!!data.reservation}, hasHotel: ${!!data.hotel}`);
     
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://autobot-five.vercel.app';
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://reserve-bot.vercel.app';
     
     return NextResponse.json({ id, url: `${baseUrl}/r/${id}` });
   } catch (error) {
