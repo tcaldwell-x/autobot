@@ -186,7 +186,6 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
         flexDirection: 'column', 
         background: brand.backgroundGradient, 
         padding: 60,
-        fontFamily: 'Inter',
       }}>
         {/* Header with logo and brand name */}
         <div style={{ display: 'flex', alignItems: 'center', marginBottom: 30 }}>
@@ -309,6 +308,6 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
         </div>
       </div>
     ),
-    { width: 1200, height: 630, ...fontConfig }
+    { width: 1200, height: 630 }
   );
 }
