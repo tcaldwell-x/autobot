@@ -51,9 +51,9 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
           justifyContent: 'center', 
           background: brand.backgroundGradient,
         }}>
-          <div style={{ fontSize: 80 }}>{brand.logo}</div>
-          <div style={{ fontSize: 36, color: 'white', marginTop: 20, fontWeight: 600 }}>{brand.name}</div>
-          <div style={{ fontSize: 24, color: '#94a3b8', marginTop: 10 }}>Reservation not found</div>
+          <div style={{ display: 'flex', fontSize: 80 }}>{brand.logo}</div>
+          <div style={{ display: 'flex', fontSize: 36, color: 'white', marginTop: 20, fontWeight: 600 }}>{brand.name}</div>
+          <div style={{ display: 'flex', fontSize: 24, color: '#94a3b8', marginTop: 10 }}>Reservation not found</div>
         </div>
       ),
       { width: 1200, height: 630 }
@@ -90,6 +90,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
           {/* Restaurant Name */}
           <div style={{ 
+            display: 'flex',
             fontSize: 56, 
             fontWeight: 700, 
             color: 'white', 
@@ -100,11 +101,12 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
           
           {/* Cuisine & Neighborhood */}
           <div style={{ 
+            display: 'flex',
             fontSize: 24, 
             color: '#9ca3af', 
             marginBottom: 30,
           }}>
-            {data.reservation.cuisine} • {data.reservation.neighborhood}
+            {data.reservation.cuisine}{data.reservation.neighborhood ? ` • ${data.reservation.neighborhood}` : ''}
           </div>
 
           {/* Reservation Details Card */}
@@ -152,6 +154,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
           {/* Footer */}
           <div style={{ 
+            display: 'flex',
             position: 'absolute', 
             bottom: 30, 
             right: 60, 
@@ -197,6 +200,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
         {/* Destination */}
         <div style={{ 
+          display: 'flex',
           fontSize: 72, 
           fontWeight: 700, 
           color: 'white', 
@@ -227,6 +231,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
               <span style={{ fontSize: 40, marginRight: 16 }}>🏨</span>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <div style={{ 
+                  display: 'flex',
                   fontSize: hasBothItems ? 24 : 32, 
                   fontWeight: 600, 
                   color: 'white', 
@@ -266,6 +271,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
               <span style={{ fontSize: 40, marginRight: 16 }}>🎯</span>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <div style={{ 
+                  display: 'flex',
                   fontSize: hasBothItems ? 24 : 32, 
                   fontWeight: 600, 
                   color: 'white', 
@@ -287,6 +293,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
 
         {/* Footer */}
         <div style={{ 
+          display: 'flex',
           position: 'absolute', 
           bottom: 30, 
           right: 60, 
