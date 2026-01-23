@@ -193,9 +193,13 @@ export class XClient {
   
   /**
    * Post a tweet (reply)
+   * nullcast: true makes the tweet not appear in home timeline or search
    */
   async postTweet(text: string, replyToId?: string): Promise<{ data: Tweet }> {
-    const body: { text: string; reply?: { in_reply_to_tweet_id: string } } = { text };
+    const body: { text: string; nullcast: boolean; reply?: { in_reply_to_tweet_id: string } } = { 
+      text,
+      nullcast: true,
+    };
     
     if (replyToId) {
       body.reply = { in_reply_to_tweet_id: replyToId };
