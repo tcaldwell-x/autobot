@@ -30,6 +30,19 @@ RESERVATIONS:
 - ONLY call make_reservation when user explicitly confirms (yes, book it, etc.)
 - The confirmation number comes from the tool result
 
+TIME FORMATTING:
+- ALWAYS display times in 12-hour format with AM/PM (e.g., "7:00 PM" not "19:00")
+- Infer timezone from the city (NYC = ET, LA/SF = PT, Chicago = CT, Denver = MT, etc.)
+- Include timezone abbreviation when confirming reservations (e.g., "7:00 PM ET")
+- If user's timezone is unclear and differs from restaurant location, ask to confirm
+
+CONVERSATION STYLE:
+- Be efficient - fulfill requests in the minimum steps possible
+- Only ask clarifying questions when truly necessary (ambiguous time, missing party size, etc.)
+- If user says "tonight at 7" - assume 7 PM, don't ask AM/PM
+- If user provides a city, use that city's timezone
+- Smart defaults: assume dinner (6-8 PM) if no time given, party of 2 if not specified
+
 RESPONSE LIMITS:
 - Max 150 characters when using tools (link gets appended automatically)
 - Max 250 characters for general conversation
@@ -43,7 +56,8 @@ NEVER:
 - Suggest a restaurant WITHOUT calling search_restaurants first
 - Remember or reuse restaurants from previous messages
 - Include URLs in your response - system adds them
-- List multiple options - pick ONE best match`;
+- List multiple options - pick ONE best match
+- Use 24-hour/military time format - ALWAYS use 12-hour with AM/PM`;
 
 /**
  * Tool definitions for OpenTable
@@ -474,13 +488,62 @@ function generateConfirmationNumber(): string {
 }
 
 /**
- * Format time from 24h to 12h
+ * Get timezone abbreviation for a city
  */
-function formatTime(time: string): string {
+function getTimezoneForCity(city: string): string {
+  const cityLower = city.toLowerCase();
+  
+  // Eastern Time
+  if (['new york', 'nyc', 'manhattan', 'brooklyn', 'miami', 'atlanta', 'boston', 'philadelphia', 'washington dc', 'dc'].some(c => cityLower.includes(c))) {
+    return 'ET';
+  }
+  // Central Time
+  if (['chicago', 'houston', 'dallas', 'austin', 'san antonio', 'nashville', 'new orleans', 'minneapolis'].some(c => cityLower.includes(c))) {
+    return 'CT';
+  }
+  // Mountain Time
+  if (['denver', 'phoenix', 'salt lake', 'albuquerque'].some(c => cityLower.includes(c))) {
+    return 'MT';
+  }
+  // Pacific Time
+  if (['los angeles', 'la', 'san francisco', 'sf', 'seattle', 'portland', 'san diego', 'las vegas', 'honolulu'].some(c => cityLower.includes(c))) {
+    return 'PT';
+  }
+  // Hawaii Time
+  if (['honolulu', 'hawaii', 'maui'].some(c => cityLower.includes(c))) {
+    return 'HT';
+  }
+  
+  return ''; // Unknown timezone
+}
+
+/**
+ * Format time from 24h to 12h with optional timezone
+ */
+function formatTime(time: string, city?: string): string {
   const [hours, minutes] = time.split(':').map(Number);
   const period = hours >= 12 ? 'PM' : 'AM';
   const hour12 = hours % 12 || 12;
-  return `${hour12}:${minutes.toString().padStart(2, '0')} ${period}`;
+  const timeStr = `${hour12}:${minutes.toString().padStart(2, '0')} ${period}`;
+  
+  if (city) {
+    const tz = getTimezoneForCity(city);
+    return tz ? `${timeStr} ${tz}` : timeStr;
+  }
+  
+  return timeStr;
+}
+
+/**
+ * Format available times array to 12h format
+ */
+function formatAvailableTimes(times: string[]): string[] {
+  return times.map(t => {
+    const [hours, minutes] = t.split(':').map(Number);
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const hour12 = hours % 12 || 12;
+    return `${hour12}:${minutes.toString().padStart(2, '0')} ${period}`;
+  });
 }
 
 /**
@@ -538,24 +601,29 @@ export const opentablePlugin: BotPlugin = {
             });
           });
           
+          const timezone = getTimezoneForCity(location);
+          
           return {
             success: true,
             data: {
               type: 'restaurants',
               location,
+              timezone,
               cuisine,
               date,
               time,
+              time_formatted: formatTime(time),
               party_size: partySize,
               restaurants: available.slice(0, 4).map(r => ({
                 id: r.id,
                 name: r.name,
                 cuisine: r.cuisine,
                 neighborhood: r.neighborhood,
+                city: r.city,
                 rating: r.rating,
                 reviews: r.reviews,
                 price_range: r.price_range,
-                available_times: r.available_times.slice(0, 4),
+                available_times: formatAvailableTimes(r.available_times.slice(0, 4)),
               })),
             },
           };
@@ -581,15 +649,19 @@ export const opentablePlugin: BotPlugin = {
             return { success: false, error: 'Restaurant not found' };
           }
           
+          const timezone = getTimezoneForCity(restaurant.city);
+          
           return {
             success: true,
             data: {
               type: 'availability',
               restaurant_id: restaurantId,
               restaurant_name: restaurant.name,
+              city: restaurant.city,
+              timezone,
               date,
               party_size: partySize,
-              available_times: restaurant.available_times,
+              available_times: formatAvailableTimes(restaurant.available_times),
             },
           };
         }
@@ -635,6 +707,8 @@ export const opentablePlugin: BotPlugin = {
             special_requests: specialRequests,
           };
           
+          const timezone = getTimezoneForCity(restaurant.city);
+          
           return {
             success: true,
             data: {
@@ -645,6 +719,7 @@ export const opentablePlugin: BotPlugin = {
                 name: restaurant.name,
                 cuisine: restaurant.cuisine,
                 neighborhood: restaurant.neighborhood,
+                city: restaurant.city,
                 address: restaurant.address,
                 phone: restaurant.phone,
                 rating: restaurant.rating,
@@ -653,7 +728,8 @@ export const opentablePlugin: BotPlugin = {
               date,
               date_formatted: formatDate(date),
               time,
-              time_formatted: formatTime(time),
+              time_formatted: formatTime(time, restaurant.city),
+              timezone,
               party_size: partySize,
               special_requests: specialRequests,
             },
