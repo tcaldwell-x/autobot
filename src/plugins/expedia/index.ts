@@ -314,7 +314,7 @@ export const expediaPlugin: BotPlugin = {
     }
   },
   
-  extractStorableData(toolResults: ToolResult[]): StorableData | null {
+  extractStorableData(toolResults: ToolResult[], _grokMessage?: string): StorableData | null {
     let destination = '';
     let hotel: { name: string; price_per_night: number; rating?: number; booking_url: string } | null = null;
     let activity: { title: string; price: string; booking_url: string } | null = null;

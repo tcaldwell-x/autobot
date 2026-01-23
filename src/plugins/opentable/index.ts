@@ -12,35 +12,35 @@ import { BotPlugin, PluginConfig, ToolContext, ToolResult, Tool, StorableData } 
  */
 const SYSTEM_PROMPT = `You are a restaurant reservation assistant on X (Twitter).
 
-CRITICAL BOOKING RULE:
-- To make a reservation, you MUST call the make_reservation tool
-- NEVER say "Booked!" without calling make_reservation first
-- If user confirms (says "yes", "book it", "please", etc.), CALL make_reservation tool immediately
-- The confirmation number comes FROM the tool result - don't make one up
+CRITICAL RULES:
 
-TWO MODES:
+1. ALWAYS USE TOOLS when suggesting restaurants:
+   - search_restaurants: MUST call this when suggesting ANY restaurant (new or alternative)
+   - make_reservation: MUST call this when user confirms booking
+   - check_availability: Check specific restaurant times
+   
+2. NEVER suggest a restaurant without calling search_restaurants first
+   - Even for follow-up suggestions ("another option"), call search_restaurants again
+   - The tool provides the link preview - without it, there's no link!
 
-1. CONVERSATIONAL - General questions about food/dining. No tools needed. Keep under 250 chars.
+3. NEVER say "Booked!" without calling make_reservation
+   - The confirmation number comes from the tool result
+   - Don't make up confirmation numbers
 
-2. RESERVATIONS - When user wants to find/book restaurants. ALWAYS use tools:
-   - search_restaurants: Find available restaurants
-   - make_reservation: Actually book a table (REQUIRED to confirm booking)
-   - check_availability: Check specific restaurant availability
+RESPONSE LIMITS:
+- Max 150 characters when using tools (link gets appended)
+- Max 250 characters for general conversation (no tools)
 
-ABSOLUTE RULES:
-- Max 150 characters when using tools (a link gets appended automatically)
-- Max 250 characters for conversation
-- NEVER include URLs or links - the system adds them automatically
-- NEVER say "Booked" without calling make_reservation tool first
-- NEVER list multiple options - pick the best one
+FLOW:
+1. User wants restaurant → call search_restaurants → suggest ONE option with name, time, rating
+2. User says "no" or "another" → call search_restaurants AGAIN → suggest different option
+3. User confirms → call make_reservation → confirm with details from tool
 
-GOOD FLOW:
-1. User asks for restaurant → call search_restaurants → suggest best option
-2. User says "yes" or "book it" → call make_reservation → confirm with details from tool
-
-BAD (hallucinating without tools):
-- Saying "Booked! Confirmation #XYZ" without calling make_reservation
-- Making up confirmation numbers`;
+NEVER:
+- Include URLs - system adds them automatically
+- List multiple options - pick ONE best match
+- Respond about restaurants without calling search_restaurants
+- Confirm bookings without calling make_reservation`;
 
 /**
  * Tool definitions for OpenTable
@@ -743,8 +743,8 @@ export const opentablePlugin: BotPlugin = {
     }
   },
   
-  extractStorableData(toolResults: ToolResult[]): StorableData | null {
-    // Look for a reservation confirmation
+  extractStorableData(toolResults: ToolResult[], grokMessage?: string): StorableData | null {
+    // Look for a reservation confirmation first
     for (const result of toolResults) {
       if (!result.success || !result.data) continue;
       
@@ -776,25 +776,44 @@ export const opentablePlugin: BotPlugin = {
         };
       }
       
-      // If just searching, return first restaurant
+      // If searching, try to find the restaurant Grok mentioned in the response
       if (data.type === 'restaurants' && data.restaurants?.length > 0) {
-        const r = data.restaurants[0];
+        let selectedRestaurant = data.restaurants[0]; // Default to first
+        
+        // Try to match restaurant name from Grok's message
+        if (grokMessage) {
+          const messageLower = grokMessage.toLowerCase();
+          for (const restaurant of data.restaurants) {
+            if (messageLower.includes(restaurant.name.toLowerCase())) {
+              selectedRestaurant = restaurant;
+              break;
+            }
+          }
+        }
+        
         return {
-          title: `${data.location} Restaurants`,
-          subtitle: data.cuisine || 'All cuisines',
+          title: selectedRestaurant.name,
+          subtitle: `${selectedRestaurant.cuisine} · ${selectedRestaurant.neighborhood || data.location}`,
           primaryItem: {
-            name: r.name,
-            price: r.price_range,
-            rating: r.rating,
+            name: selectedRestaurant.name,
+            price: selectedRestaurant.price_range,
+            rating: selectedRestaurant.rating,
           },
           secondaryItem: {
-            name: r.cuisine,
-            price: r.neighborhood,
+            name: selectedRestaurant.cuisine,
+            price: selectedRestaurant.neighborhood,
           },
-          actionUrl: `https://www.opentable.com/s?dateTime=${data.date}T${data.time}&covers=${data.party_size}&metroId=4`,
+          actionUrl: `https://www.opentable.com/r/${selectedRestaurant.id}`,
           metadata: {
             type: 'search',
-            restaurants: data.restaurants,
+            restaurant: selectedRestaurant,
+            searchParams: {
+              location: data.location,
+              cuisine: data.cuisine,
+              date: data.date,
+              time: data.time,
+              party_size: data.party_size,
+            },
           },
         };
       }

@@ -145,7 +145,7 @@ export async function processWithGrok(thread: ConversationThread): Promise<GrokP
     botResponse = {
       message: finalMessage,
       hasData: hadToolCalls && toolResults.some(r => r.success),
-      data: plugin.extractStorableData?.(toolResults) || undefined,
+      data: plugin.extractStorableData?.(toolResults, finalMessage) || undefined,
     };
   }
 
