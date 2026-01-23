@@ -15,32 +15,31 @@ const SYSTEM_PROMPT = `You are a restaurant reservation assistant on X (Twitter)
 CRITICAL RULES:
 
 1. ALWAYS USE TOOLS when suggesting restaurants:
-   - search_restaurants: MUST call this when suggesting ANY restaurant (new or alternative)
+   - search_restaurants: MUST call this when suggesting ANY restaurant
    - make_reservation: MUST call this when user confirms booking
-   - check_availability: Check specific restaurant times
    
-2. NEVER suggest a restaurant without calling search_restaurants first
-   - Even for follow-up suggestions ("another option"), call search_restaurants again
-   - The tool provides the link preview - without it, there's no link!
+2. ONLY SUGGEST RESTAURANTS FROM SEARCH RESULTS
+   - After calling search_restaurants, you receive a list of restaurants
+   - You MUST pick a restaurant from that list - use the EXACT name returned
+   - NEVER make up restaurant names - only use names from the tool results
+   - If the search returns "Trattoria Roma", say "Trattoria Roma" - not something else
 
 3. NEVER say "Booked!" without calling make_reservation
    - The confirmation number comes from the tool result
-   - Don't make up confirmation numbers
 
 RESPONSE LIMITS:
 - Max 150 characters when using tools (link gets appended)
-- Max 250 characters for general conversation (no tools)
+- Max 250 characters for general conversation
 
 FLOW:
-1. User wants restaurant → call search_restaurants → suggest ONE option with name, time, rating
-2. User says "no" or "another" → call search_restaurants AGAIN → suggest different option
+1. User wants restaurant → call search_restaurants → pick ONE from results, use EXACT name
+2. User says "no" → call search_restaurants → pick DIFFERENT one from results
 3. User confirms → call make_reservation → confirm with details from tool
 
 NEVER:
-- Include URLs - system adds them automatically
-- List multiple options - pick ONE best match
-- Respond about restaurants without calling search_restaurants
-- Confirm bookings without calling make_reservation`;
+- Make up restaurant names - only use names from search results
+- Include URLs - system adds them automatically  
+- List multiple options - pick ONE best match`;
 
 /**
  * Tool definitions for OpenTable
@@ -344,20 +343,44 @@ const restaurantData: Record<string, Restaurant[]> = {
       image_url: 'https://images.opentable.com/mandolin.jpg',
       available_times: ['12:00', '13:00', '18:00', '19:00', '20:00', '21:00'],
     },
-    {
-      id: 'ot-versailles-mia',
-      name: 'Versailles Restaurant',
-      cuisine: 'Cuban',
-      neighborhood: 'Little Havana',
-      city: 'Miami',
-      rating: 4.3,
-      reviews: 7654,
-      price_range: '$$',
-      address: '3555 SW 8th St, Miami, FL 33135',
-      phone: '(305) 444-0240',
-      image_url: 'https://images.opentable.com/versailles.jpg',
-      available_times: ['11:00', '12:00', '13:00', '17:00', '18:00', '19:00', '20:00'],
-    },
+    { id: 'ot-versailles-mia', name: 'Versailles Restaurant', cuisine: 'Cuban', neighborhood: 'Little Havana', city: 'Miami', rating: 4.3, reviews: 7654, price_range: '$$', address: '3555 SW 8th St, Miami, FL 33135', phone: '(305) 444-0240', image_url: '', available_times: ['11:00', '12:00', '13:00', '17:00', '18:00', '19:00', '20:00'] },
+    { id: 'ot-cvi-che-mia', name: 'CVI.CHE 105', cuisine: 'Peruvian', neighborhood: 'Downtown', city: 'Miami', rating: 4.6, reviews: 3421, price_range: '$$$', address: '105 NE 3rd Ave, Miami, FL 33132', phone: '(305) 577-3454', image_url: '', available_times: ['12:00', '13:00', '18:00', '19:00', '20:00', '21:00'] },
+    { id: 'ot-zuma-mia', name: 'Zuma', cuisine: 'Japanese', neighborhood: 'Downtown', city: 'Miami', rating: 4.7, reviews: 2876, price_range: '$$$$', address: '270 Biscayne Blvd Way, Miami, FL 33131', phone: '(305) 577-0277', image_url: '', available_times: ['18:00', '19:00', '20:00', '21:00', '22:00'] },
+    { id: 'ot-macchialina-mia', name: 'Macchialina', cuisine: 'Italian', neighborhood: 'South Beach', city: 'Miami', rating: 4.6, reviews: 1987, price_range: '$$$', address: '820 Alton Rd, Miami Beach, FL 33139', phone: '(305) 534-2124', image_url: '', available_times: ['18:00', '19:00', '20:00', '21:00'] },
+  ],
+  'denver': [
+    { id: 'ot-frasca-den', name: 'Frasca Food and Wine', cuisine: 'Italian', neighborhood: 'Boulder', city: 'Denver', rating: 4.8, reviews: 1876, price_range: '$$$$', address: '1738 Pearl St, Boulder, CO 80302', phone: '(303) 442-6966', image_url: '', available_times: ['17:30', '18:30', '19:30', '20:30'] },
+    { id: 'ot-tavernetta-den', name: 'Tavernetta', cuisine: 'Italian', neighborhood: 'Union Station', city: 'Denver', rating: 4.7, reviews: 2341, price_range: '$$$', address: '1889 16th St, Denver, CO 80202', phone: '(720) 605-1889', image_url: '', available_times: ['17:00', '18:00', '19:00', '20:00', '21:00'] },
+    { id: 'ot-acorn-den', name: 'Acorn', cuisine: 'American', neighborhood: 'RiNo', city: 'Denver', rating: 4.6, reviews: 3214, price_range: '$$$', address: '3350 Brighton Blvd, Denver, CO 80216', phone: '(720) 542-3721', image_url: '', available_times: ['17:00', '18:00', '19:00', '20:00', '21:00'] },
+    { id: 'ot-sushi-den-den', name: 'Sushi Den', cuisine: 'Japanese', neighborhood: 'South Pearl', city: 'Denver', rating: 4.7, reviews: 4521, price_range: '$$$', address: '1487 S Pearl St, Denver, CO 80210', phone: '(303) 777-0826', image_url: '', available_times: ['17:30', '18:30', '19:30', '20:30'] },
+    { id: 'ot-guard-grace-den', name: 'Guard and Grace', cuisine: 'Steakhouse', neighborhood: 'Downtown', city: 'Denver', rating: 4.6, reviews: 2987, price_range: '$$$$', address: '1801 California St, Denver, CO 80202', phone: '(303) 293-8500', image_url: '', available_times: ['17:00', '18:00', '19:00', '20:00', '21:00'] },
+    { id: 'ot-mercantile-den', name: 'Mercantile Dining & Provision', cuisine: 'American', neighborhood: 'Union Station', city: 'Denver', rating: 4.5, reviews: 2143, price_range: '$$$', address: '1701 Wynkoop St, Denver, CO 80202', phone: '(720) 460-3733', image_url: '', available_times: ['11:00', '12:00', '17:00', '18:00', '19:00', '20:00'] },
+    { id: 'ot-linger-den', name: 'Linger', cuisine: 'International', neighborhood: 'LoHi', city: 'Denver', rating: 4.5, reviews: 3654, price_range: '$$', address: '2030 W 30th Ave, Denver, CO 80211', phone: '(303) 993-3120', image_url: '', available_times: ['17:00', '18:00', '19:00', '20:00', '21:00', '22:00'] },
+    { id: 'ot-los-chingones-den', name: 'Los Chingones', cuisine: 'Mexican', neighborhood: 'RiNo', city: 'Denver', rating: 4.4, reviews: 2876, price_range: '$$', address: '2463 Larimer St, Denver, CO 80205', phone: '(303) 295-0686', image_url: '', available_times: ['11:00', '12:00', '17:00', '18:00', '19:00', '20:00', '21:00'] },
+  ],
+  'seattle': [
+    { id: 'ot-canlis-sea', name: 'Canlis', cuisine: 'American', neighborhood: 'Westlake', city: 'Seattle', rating: 4.9, reviews: 1543, price_range: '$$$$', address: '2576 Aurora Ave N, Seattle, WA 98109', phone: '(206) 283-3313', image_url: '', available_times: ['17:30', '19:30'] },
+    { id: 'ot-altura-sea', name: 'Altura', cuisine: 'Italian', neighborhood: 'Capitol Hill', city: 'Seattle', rating: 4.8, reviews: 987, price_range: '$$$$', address: '617 Broadway E, Seattle, WA 98102', phone: '(206) 402-6749', image_url: '', available_times: ['17:00', '19:30'] },
+    { id: 'ot-bateau-sea', name: 'Bateau', cuisine: 'Steakhouse', neighborhood: 'Capitol Hill', city: 'Seattle', rating: 4.7, reviews: 1234, price_range: '$$$$', address: '1040 E Union St, Seattle, WA 98122', phone: '(206) 900-8699', image_url: '', available_times: ['17:00', '18:00', '19:00', '20:00'] },
+    { id: 'ot-shiro-sea', name: "Shiro's", cuisine: 'Japanese', neighborhood: 'Belltown', city: 'Seattle', rating: 4.8, reviews: 2341, price_range: '$$$$', address: '2401 2nd Ave, Seattle, WA 98121', phone: '(206) 443-9844', image_url: '', available_times: ['17:30', '18:30', '19:30', '20:30'] },
+    { id: 'ot-walrus-sea', name: 'The Walrus and the Carpenter', cuisine: 'Seafood', neighborhood: 'Ballard', city: 'Seattle', rating: 4.6, reviews: 3214, price_range: '$$$', address: '4743 Ballard Ave NW, Seattle, WA 98107', phone: '(206) 395-9227', image_url: '', available_times: ['17:00', '18:00', '19:00', '20:00', '21:00'] },
+    { id: 'ot-spinasse-sea', name: 'Spinasse', cuisine: 'Italian', neighborhood: 'Capitol Hill', city: 'Seattle', rating: 4.7, reviews: 1876, price_range: '$$$', address: '1531 14th Ave, Seattle, WA 98122', phone: '(206) 251-7673', image_url: '', available_times: ['17:00', '18:00', '19:00', '20:00', '21:00'] },
+  ],
+  'austin': [
+    { id: 'ot-uchi-aus', name: 'Uchi', cuisine: 'Japanese', neighborhood: 'South Lamar', city: 'Austin', rating: 4.8, reviews: 3421, price_range: '$$$$', address: '801 S Lamar Blvd, Austin, TX 78704', phone: '(512) 916-4808', image_url: '', available_times: ['17:00', '18:00', '19:00', '20:00', '21:00'] },
+    { id: 'ot-lenoir-aus', name: 'Lenoir', cuisine: 'American', neighborhood: 'South Congress', city: 'Austin', rating: 4.7, reviews: 1234, price_range: '$$$$', address: '1807 S 1st St, Austin, TX 78704', phone: '(512) 215-9778', image_url: '', available_times: ['18:00', '20:00'] },
+    { id: 'ot-franklin-aus', name: 'Franklin Barbecue', cuisine: 'BBQ', neighborhood: 'East Austin', city: 'Austin', rating: 4.9, reviews: 8765, price_range: '$$', address: '900 E 11th St, Austin, TX 78702', phone: '(512) 653-1187', image_url: '', available_times: ['11:00', '12:00', '13:00'] },
+    { id: 'ot-emmer-aus', name: 'Emmer & Rye', cuisine: 'American', neighborhood: 'Rainey Street', city: 'Austin', rating: 4.6, reviews: 1876, price_range: '$$$', address: '51 Rainey St, Austin, TX 78701', phone: '(512) 366-5530', image_url: '', available_times: ['17:00', '18:00', '19:00', '20:00', '21:00'] },
+    { id: 'ot-juniper-aus', name: 'Juniper', cuisine: 'Italian', neighborhood: 'East Austin', city: 'Austin', rating: 4.5, reviews: 1543, price_range: '$$$', address: '2400 E Cesar Chavez St, Austin, TX 78702', phone: '(512) 220-9421', image_url: '', available_times: ['17:30', '18:30', '19:30', '20:30'] },
+    { id: 'ot-suerte-aus', name: 'Suerte', cuisine: 'Mexican', neighborhood: 'East Austin', city: 'Austin', rating: 4.7, reviews: 2341, price_range: '$$$', address: '1800 E 6th St, Austin, TX 78702', phone: '(512) 953-0092', image_url: '', available_times: ['17:00', '18:00', '19:00', '20:00', '21:00'] },
+  ],
+  'boston': [
+    { id: 'ot-oleana-bos', name: 'Oleana', cuisine: 'Mediterranean', neighborhood: 'Cambridge', city: 'Boston', rating: 4.8, reviews: 2143, price_range: '$$$', address: '134 Hampshire St, Cambridge, MA 02139', phone: '(617) 661-0505', image_url: '', available_times: ['17:30', '18:30', '19:30', '20:30'] },
+    { id: 'ot-menton-bos', name: 'Menton', cuisine: 'French', neighborhood: 'Seaport', city: 'Boston', rating: 4.9, reviews: 1234, price_range: '$$$$', address: '354 Congress St, Boston, MA 02210', phone: '(617) 737-0099', image_url: '', available_times: ['17:30', '19:30'] },
+    { id: 'ot-no9-bos', name: 'No. 9 Park', cuisine: 'French-Italian', neighborhood: 'Beacon Hill', city: 'Boston', rating: 4.7, reviews: 1876, price_range: '$$$$', address: '9 Park St, Boston, MA 02108', phone: '(617) 742-9991', image_url: '', available_times: ['17:00', '18:00', '19:00', '20:00'] },
+    { id: 'ot-oishii-bos', name: 'Oishii', cuisine: 'Japanese', neighborhood: 'South End', city: 'Boston', rating: 4.7, reviews: 2341, price_range: '$$$$', address: '1166 Washington St, Boston, MA 02118', phone: '(617) 482-8868', image_url: '', available_times: ['17:30', '18:30', '19:30', '20:30'] },
+    { id: 'ot-neptune-bos', name: 'Neptune Oyster', cuisine: 'Seafood', neighborhood: 'North End', city: 'Boston', rating: 4.6, reviews: 4321, price_range: '$$$', address: '63 Salem St, Boston, MA 02113', phone: '(617) 742-3474', image_url: '', available_times: ['11:30', '12:30', '17:30', '18:30', '19:30', '20:30'] },
+    { id: 'ot-sorellina-bos', name: 'Sorellina', cuisine: 'Italian', neighborhood: 'Back Bay', city: 'Boston', rating: 4.6, reviews: 1987, price_range: '$$$$', address: '1 Huntington Ave, Boston, MA 02116', phone: '(617) 412-4600', image_url: '', available_times: ['17:00', '18:00', '19:00', '20:00', '21:00'] },
   ],
 };
 
