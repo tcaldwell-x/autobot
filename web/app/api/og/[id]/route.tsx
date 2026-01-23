@@ -4,14 +4,6 @@ import { RecommendationData } from '@/lib/types';
 
 export const runtime = 'edge';
 
-// Load Inter font for OG images
-const interBold = fetch(
-  new URL('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYAZ9hiA.woff2')
-).then((res) => res.arrayBuffer());
-
-const interSemiBold = fetch(
-  new URL('https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuI6fAZ9hiA.woff2')
-).then((res) => res.arrayBuffer());
 
 // Branding config (edge runtime can't use Node.js modules, so we inline the config)
 // Dark theme with saturated red
@@ -35,16 +27,6 @@ const redis = new Redis({
 });
 
 export async function GET(_req: Request, { params }: { params: { id: string } }) {
-  // Load fonts
-  const [interBoldData, interSemiBoldData] = await Promise.all([interBold, interSemiBold]);
-  
-  const fontConfig = {
-    fonts: [
-      { name: 'Inter', data: interBoldData, weight: 700 as const },
-      { name: 'Inter', data: interSemiBoldData, weight: 600 as const },
-    ],
-  };
-
   let data: RecommendationData | null = null;
   try {
     const raw = await redis.get(`r:${params.id}`);
@@ -69,14 +51,13 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
           alignItems: 'center', 
           justifyContent: 'center', 
           background: brand.backgroundGradient,
-          fontFamily: 'Inter',
         }}>
           <div style={{ display: 'flex', fontSize: 80 }}>{brand.logo}</div>
           <div style={{ display: 'flex', fontSize: 36, color: 'white', marginTop: 20, fontWeight: 700 }}>{brand.name}</div>
           <div style={{ display: 'flex', fontSize: 24, color: '#6b7280', marginTop: 10, fontWeight: 600 }}>Reservation not found</div>
         </div>
       ),
-      { width: 1200, height: 630, ...fontConfig }
+      { width: 1200, height: 630 }
     );
   }
 
@@ -93,7 +74,6 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
           flexDirection: 'column', 
           background: brand.backgroundGradient, 
           padding: 60,
-          fontFamily: 'Inter',
         }}>
           {/* Header */}
           <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
@@ -188,7 +168,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
           </div>
         </div>
       ),
-      { width: 1200, height: 630, ...fontConfig }
+      { width: 1200, height: 630 }
     );
   }
 
