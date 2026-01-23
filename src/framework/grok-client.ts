@@ -203,8 +203,8 @@ export async function processWithGrok(thread: ConversationThread): Promise<GrokP
  * Call the Grok API
  */
 async function callGrok(messages: Message[], tools?: Tool[], hasImages = false): Promise<ChatCompletionResponse> {
-  // Use vision-capable model when images are present
-  const model = hasImages ? 'grok-2-vision-latest' : 'grok-3-latest';
+  // Use grok-4 for vision capabilities, grok-3 for text-only
+  const model = hasImages ? 'grok-4-1-fast-reasoning' : 'grok-3-latest';
   
   const body: Record<string, unknown> = {
     model,
