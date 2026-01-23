@@ -13,7 +13,7 @@ export const config = {
   accessTokenSecret: process.env.X_ACCESS_TOKEN_SECRET || '',
   
   // Bot configuration
-  botUsername: process.env.BOT_USERNAME || 'autobot_demo',
+  botUsername: process.env.BOT_USERNAME || 'ReserveBot_',
   
   // Website URL (for OG preview links)
   websiteUrl: process.env.WEBSITE_URL || 'https://reserve-bot.vercel.app',
