@@ -37,10 +37,10 @@ export interface BrandingConfig {
  * Default branding configuration
  * Override any value with environment variables prefixed with NEXT_PUBLIC_BRAND_
  * 
- * Default colors based on OpenTable brand:
- * - Red: #DA3743 (primary)
- * - White: #ffffff (text)
- * - Dark: #1a1a1a (background)
+ * Color palette:
+ * - Deep Red: #b91c1c (saturated, bold)
+ * - Charcoal/Black: #0a0a0a (near black)
+ * - White: #ffffff (text/accent)
  */
 export const branding: BrandingConfig = {
   // Bot identity
@@ -48,22 +48,22 @@ export const branding: BrandingConfig = {
   tagline: process.env.NEXT_PUBLIC_BRAND_TAGLINE || 'AI-Powered Restaurant Reservations',
   logo: process.env.NEXT_PUBLIC_BRAND_LOGO || '🍽️',
   
-  // Colors (OpenTable brand)
-  primaryColor: process.env.NEXT_PUBLIC_BRAND_PRIMARY_COLOR || '#1a1a1a',     // Dark background
-  secondaryColor: process.env.NEXT_PUBLIC_BRAND_SECONDARY_COLOR || '#DA3743', // OpenTable red
+  // Colors (dark + saturated red)
+  primaryColor: process.env.NEXT_PUBLIC_BRAND_PRIMARY_COLOR || '#0a0a0a',     // Near black
+  secondaryColor: process.env.NEXT_PUBLIC_BRAND_SECONDARY_COLOR || '#b91c1c', // Deep saturated red
   accentColor: process.env.NEXT_PUBLIC_BRAND_ACCENT_COLOR || '#ffffff',       // White
   
-  // Gradients
+  // Gradients (darker, more dramatic)
   backgroundGradient: process.env.NEXT_PUBLIC_BRAND_BG_GRADIENT || 
-    'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)',
+    'linear-gradient(135deg, #0a0a0a 0%, #171717 50%, #0a0a0a 100%)',
   buttonGradient: process.env.NEXT_PUBLIC_BRAND_BUTTON_GRADIENT || 
-    'linear-gradient(90deg, #DA3743, #ff5a5a)',
+    'linear-gradient(90deg, #b91c1c, #dc2626)',
   textGradient: process.env.NEXT_PUBLIC_BRAND_TEXT_GRADIENT || 
-    'linear-gradient(90deg, #DA3743, #ff6b6b)',
+    'linear-gradient(90deg, #dc2626, #ef4444)',
   
-  // Card styling
-  cardBackground: process.env.NEXT_PUBLIC_BRAND_CARD_BG || 'rgba(45, 45, 45, 0.9)',
-  cardBorder: process.env.NEXT_PUBLIC_BRAND_CARD_BORDER || 'rgba(218, 55, 67, 0.3)',
+  // Card styling (darker)
+  cardBackground: process.env.NEXT_PUBLIC_BRAND_CARD_BG || 'rgba(23, 23, 23, 0.95)',
+  cardBorder: process.env.NEXT_PUBLIC_BRAND_CARD_BORDER || 'rgba(185, 28, 28, 0.4)',
   
   // Attribution
   poweredBy: process.env.NEXT_PUBLIC_BRAND_POWERED_BY || 'Powered by OpenTable',
