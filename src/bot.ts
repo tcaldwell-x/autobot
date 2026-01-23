@@ -354,6 +354,7 @@ export class AutoBot {
     try {
       const apiUrl = `${config.websiteUrl}/api/recommendations`;
       console.log(`[Bot] Storing ${isReservation ? 'reservation' : 'recommendation'}: ${apiUrl}`);
+      console.log(`[Bot] Data being sent:`, JSON.stringify(apiData, null, 2));
       
       const res = await fetch(apiUrl, {
         method: 'POST',

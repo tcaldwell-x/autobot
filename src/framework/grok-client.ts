@@ -121,13 +121,16 @@ export async function processWithGrok(thread: ConversationThread): Promise<GrokP
   let finalMessage = response.choices[0].message.content || '';
   const hadToolCalls = toolResults.length > 0;
 
-  // Strip any placeholder text that Grok might add (system appends URLs automatically)
+  // Strip any placeholder text or URLs that Grok might add (system appends URLs automatically)
   finalMessage = finalMessage
     .replace(/\s*\[link\]\s*/gi, '')
     .replace(/\s*More details:?\s*$/i, '')
     .replace(/\s*Click here:?\s*$/i, '')
     .replace(/\s*See more:?\s*$/i, '')
     .replace(/\s*Link:?\s*$/i, '')
+    // Remove any URLs Grok might hallucinate (we add our own)
+    .replace(/https?:\/\/[^\s)]+/gi, '')
+    .replace(/\bt\.co\/\S+/gi, '')
     .trim();
 
   console.log(`[Grok] Final response (${hadToolCalls ? 'with tools' : 'conversational'}):`, finalMessage);

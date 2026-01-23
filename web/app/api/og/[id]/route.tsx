@@ -29,8 +29,14 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
   let data: RecommendationData | null = null;
   try {
     const raw = await redis.get(`r:${params.id}`);
-    if (raw) data = typeof raw === 'string' ? JSON.parse(raw) : raw as RecommendationData;
-  } catch { /* ignore */ }
+    console.log(`[OG] Fetched data for ${params.id}:`, raw ? 'found' : 'not found');
+    if (raw) {
+      data = typeof raw === 'string' ? JSON.parse(raw) : raw as RecommendationData;
+      console.log(`[OG] Data type: ${data?.type}, hasReservation: ${!!data?.reservation}`);
+    }
+  } catch (err) {
+    console.error(`[OG] Redis error for ${params.id}:`, err);
+  }
   
   // Not found state
   if (!data) {
