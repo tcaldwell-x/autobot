@@ -15,8 +15,8 @@ export default function NotFound() {
         </p>
         <Link
           href="/"
-          className="inline-flex items-center gap-2 font-bold px-6 py-3 rounded-full transition-opacity hover:opacity-90"
-          style={{ background: branding.buttonGradient, color: branding.primaryColor }}
+          className="inline-flex items-center gap-2 font-bold px-6 py-3 rounded-full transition-opacity hover:opacity-90 text-white"
+          style={{ background: branding.buttonGradient }}
         >
           Go Home
         </Link>

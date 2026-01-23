@@ -6,6 +6,7 @@
 
 import { BotPlugin } from '../framework/types';
 import { expediaPlugin } from './expedia';
+import { opentablePlugin } from './opentable';
 
 /**
  * All available plugins
@@ -13,6 +14,7 @@ import { expediaPlugin } from './expedia';
  */
 export const availablePlugins: BotPlugin[] = [
   expediaPlugin,
+  opentablePlugin,
   // Add more plugins here:
   // myCustomPlugin,
 ];
@@ -33,3 +35,4 @@ export function listAvailablePlugins(): string[] {
 
 // Re-export plugins for direct imports
 export { expediaPlugin } from './expedia';
+export { opentablePlugin } from './opentable';

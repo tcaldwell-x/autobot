@@ -5,19 +5,19 @@ import { RecommendationData } from '@/lib/types';
 export const runtime = 'edge';
 
 // Branding config (edge runtime can't use Node.js modules, so we inline the config)
-// Default colors based on Expedia brand: Blue #00355F, Yellow #ffc60b, White #ffffff
+// Default colors based on OpenTable brand: Red #DA3743, White, Dark
 const brand = {
   name: process.env.NEXT_PUBLIC_BRAND_NAME || 'BookingBot',
-  logo: process.env.NEXT_PUBLIC_BRAND_LOGO || '🛫',
-  primaryColor: process.env.NEXT_PUBLIC_BRAND_PRIMARY_COLOR || '#00355F',
-  secondaryColor: process.env.NEXT_PUBLIC_BRAND_SECONDARY_COLOR || '#ffc60b',
+  logo: process.env.NEXT_PUBLIC_BRAND_LOGO || '🍽️',
+  primaryColor: process.env.NEXT_PUBLIC_BRAND_PRIMARY_COLOR || '#DA3743',
+  secondaryColor: process.env.NEXT_PUBLIC_BRAND_SECONDARY_COLOR || '#DA3743',
   backgroundGradient: process.env.NEXT_PUBLIC_BRAND_BG_GRADIENT || 
-    'linear-gradient(135deg, #00355F 0%, #001a2e 50%, #002244 100%)',
+    'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)',
   textGradient: process.env.NEXT_PUBLIC_BRAND_TEXT_GRADIENT || 
-    'linear-gradient(90deg, #ffc60b, #ffe066)',
-  cardBackground: process.env.NEXT_PUBLIC_BRAND_CARD_BG || 'rgba(0, 53, 95, 0.7)',
+    'linear-gradient(90deg, #DA3743, #ff6b6b)',
+  cardBackground: process.env.NEXT_PUBLIC_BRAND_CARD_BG || 'rgba(45, 45, 45, 0.9)',
   accentColor: process.env.NEXT_PUBLIC_BRAND_ACCENT_COLOR || '#ffffff',
-  poweredBy: process.env.NEXT_PUBLIC_BRAND_POWERED_BY || 'Powered by Expedia',
+  poweredBy: process.env.NEXT_PUBLIC_BRAND_POWERED_BY || 'Powered by OpenTable',
 };
 
 const redis = new Redis({
@@ -47,13 +47,120 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
         }}>
           <div style={{ fontSize: 80 }}>{brand.logo}</div>
           <div style={{ fontSize: 36, color: 'white', marginTop: 20, fontWeight: 600 }}>{brand.name}</div>
-          <div style={{ fontSize: 24, color: '#94a3b8', marginTop: 10 }}>Recommendation not found</div>
+          <div style={{ fontSize: 24, color: '#94a3b8', marginTop: 10 }}>Reservation not found</div>
         </div>
       ),
       { width: 1200, height: 630 }
     );
   }
 
+  const isReservation = !!data.reservation;
+
+  // Reservation confirmation OG image
+  if (isReservation && data.reservation) {
+    return new ImageResponse(
+      (
+        <div style={{ 
+          height: '100%', 
+          width: '100%', 
+          display: 'flex', 
+          flexDirection: 'column', 
+          background: brand.backgroundGradient, 
+          padding: 60,
+        }}>
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 20 }}>
+            <span style={{ fontSize: 50, marginRight: 16 }}>{brand.logo}</span>
+            <span style={{ 
+              fontSize: 32, 
+              fontWeight: 700, 
+              background: brand.textGradient, 
+              backgroundClip: 'text', 
+              color: 'transparent',
+            }}>
+              {brand.name}
+            </span>
+          </div>
+
+          {/* Restaurant Name */}
+          <div style={{ 
+            fontSize: 56, 
+            fontWeight: 700, 
+            color: 'white', 
+            marginBottom: 8,
+          }}>
+            {data.reservation.restaurant_name}
+          </div>
+          
+          {/* Cuisine & Neighborhood */}
+          <div style={{ 
+            fontSize: 24, 
+            color: '#9ca3af', 
+            marginBottom: 30,
+          }}>
+            {data.reservation.cuisine} • {data.reservation.neighborhood}
+          </div>
+
+          {/* Reservation Details Card */}
+          <div style={{ 
+            display: 'flex', 
+            background: brand.cardBackground, 
+            borderRadius: 20, 
+            padding: 30,
+            marginTop: 'auto',
+            marginBottom: 40,
+            border: `2px solid ${brand.secondaryColor}`,
+          }}>
+            {/* Date */}
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+              <span style={{ fontSize: 18, color: '#9ca3af', marginBottom: 4 }}>Date</span>
+              <span style={{ fontSize: 28, fontWeight: 600, color: 'white' }}>
+                📅 {data.reservation.date_formatted}
+              </span>
+            </div>
+            
+            {/* Time */}
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+              <span style={{ fontSize: 18, color: '#9ca3af', marginBottom: 4 }}>Time</span>
+              <span style={{ fontSize: 28, fontWeight: 600, color: 'white' }}>
+                🕐 {data.reservation.time_formatted}
+              </span>
+            </div>
+            
+            {/* Party Size */}
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+              <span style={{ fontSize: 18, color: '#9ca3af', marginBottom: 4 }}>Party</span>
+              <span style={{ fontSize: 28, fontWeight: 600, color: 'white' }}>
+                👥 {data.reservation.party_size} guests
+              </span>
+            </div>
+            
+            {/* Confirmation */}
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+              <span style={{ fontSize: 18, color: '#9ca3af', marginBottom: 4 }}>Confirmation</span>
+              <span style={{ fontSize: 28, fontWeight: 700, color: brand.secondaryColor }}>
+                {data.reservation.confirmation_number}
+              </span>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div style={{ 
+            position: 'absolute', 
+            bottom: 30, 
+            right: 60, 
+            fontSize: 18, 
+            color: '#64748b',
+          }}>
+            {brand.poweredBy}
+          </div>
+        </div>
+      ),
+      { width: 1200, height: 630 }
+    );
+  }
+
+  // Travel recommendation OG image (existing logic)
   const hasHotel = !!data.hotel;
   const hasActivity = !!data.activity;
   const hasBothItems = hasHotel && hasActivity;
@@ -109,7 +216,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
               borderRadius: 20, 
               padding: 24,
               flex: hasBothItems ? 1 : 'none',
-              border: `2px solid rgba(255, 198, 11, 0.3)`,
+              border: `2px solid rgba(218, 55, 67, 0.3)`,
             }}>
               <span style={{ fontSize: 40, marginRight: 16 }}>🏨</span>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -148,7 +255,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
               borderRadius: 20, 
               padding: 24,
               flex: hasBothItems ? 1 : 'none',
-              border: `2px solid rgba(255, 198, 11, 0.3)`,
+              border: `2px solid rgba(218, 55, 67, 0.3)`,
             }}>
               <span style={{ fontSize: 40, marginRight: 16 }}>🎯</span>
               <div style={{ display: 'flex', flexDirection: 'column' }}>

@@ -308,25 +308,52 @@ export class AutoBot {
    */
   private async storeAndGetUrl(response: BotResponse): Promise<string> {
     const data = response.data!;
+    const metadata = data.metadata as Record<string, any> | undefined;
+    
+    // Determine if this is a reservation or travel recommendation
+    const isReservation = metadata?.type === 'reservation';
     
     // Map StorableData to the API format
-    const apiData = {
+    const apiData: Record<string, any> = {
       destination: data.title,
-      hotel: data.primaryItem ? {
+      searchUrl: data.actionUrl,
+      type: isReservation ? 'reservation' : 'travel',
+    };
+    
+    if (isReservation && metadata) {
+      // Reservation data
+      apiData.reservation = {
+        confirmation_number: metadata.confirmation_number,
+        restaurant_name: metadata.restaurant?.name,
+        cuisine: metadata.restaurant?.cuisine,
+        neighborhood: metadata.restaurant?.neighborhood,
+        address: metadata.restaurant?.address,
+        phone: metadata.restaurant?.phone,
+        rating: metadata.restaurant?.rating,
+        price_range: metadata.restaurant?.price_range,
+        date: metadata.date,
+        date_formatted: data.subtitle?.split(' at ')[0] || metadata.date,
+        time: metadata.time,
+        time_formatted: data.subtitle?.split(' at ')[1] || metadata.time,
+        party_size: metadata.party_size,
+        special_requests: metadata.special_requests,
+      };
+    } else {
+      // Travel/other data
+      apiData.hotel = data.primaryItem ? {
         name: data.primaryItem.name,
         price: data.primaryItem.price,
         rating: data.primaryItem.rating,
-      } : undefined,
-      activity: data.secondaryItem ? {
+      } : undefined;
+      apiData.activity = data.secondaryItem ? {
         title: data.secondaryItem.name,
         price: data.secondaryItem.price,
-      } : undefined,
-      searchUrl: data.actionUrl,
-    };
+      } : undefined;
+    }
     
     try {
       const apiUrl = `${config.websiteUrl}/api/recommendations`;
-      console.log(`[Bot] Storing data: ${apiUrl}`);
+      console.log(`[Bot] Storing ${isReservation ? 'reservation' : 'recommendation'}: ${apiUrl}`);
       
       const res = await fetch(apiUrl, {
         method: 'POST',

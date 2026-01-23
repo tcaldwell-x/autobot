@@ -14,9 +14,11 @@ export async function POST(request: NextRequest) {
     
     const data: RecommendationData = {
       destination: body.destination,
+      type: body.type || 'travel',
       hotel: body.hotel,
       activity: body.activity,
-      searchUrl: body.searchUrl || `https://www.expedia.com/Hotel-Search?destination=${encodeURIComponent(body.destination)}`,
+      reservation: body.reservation,
+      searchUrl: body.searchUrl || 'https://www.opentable.com',
       createdAt: Date.now(),
     };
     

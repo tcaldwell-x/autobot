@@ -23,20 +23,28 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   
   if (!data) return { title: 'Not Found' };
   
-  const title = `${data.destination} | ${branding.name}`;
+  let title: string;
+  let description: string;
   
-  // Build description from available data
-  let description = '';
-  if (data.hotel) {
-    description += `🏨 ${data.hotel.name} - ${data.hotel.price}`;
-    if (data.hotel.rating) description += ` ⭐${data.hotel.rating}`;
-  }
-  if (data.activity) {
-    if (description) description += ' | ';
-    description += `🎯 ${data.activity.title} - ${data.activity.price}`;
-  }
-  if (!description) {
-    description = `Travel recommendations for ${data.destination}`;
+  if (data.reservation) {
+    // Reservation confirmation
+    title = `Reservation at ${data.reservation.restaurant_name} | ${branding.name}`;
+    description = `🍽️ Table for ${data.reservation.party_size} on ${data.reservation.date_formatted} at ${data.reservation.time_formatted}`;
+  } else {
+    // Travel recommendation
+    title = `${data.destination} | ${branding.name}`;
+    description = '';
+    if (data.hotel) {
+      description += `🏨 ${data.hotel.name} - ${data.hotel.price}`;
+      if (data.hotel.rating) description += ` ⭐${data.hotel.rating}`;
+    }
+    if (data.activity) {
+      if (description) description += ' | ';
+      description += `🎯 ${data.activity.title} - ${data.activity.price}`;
+    }
+    if (!description) {
+      description = `Travel recommendations for ${data.destination}`;
+    }
   }
   
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://autobot-five.vercel.app';
@@ -54,6 +62,8 @@ export default async function RecommendationPage({ params }: PageProps) {
   const data = await getData(params.id);
   
   if (!data) notFound();
+  
+  const isReservation = !!data.reservation;
   
   return (
     <main 
@@ -75,11 +85,110 @@ export default async function RecommendationPage({ params }: PageProps) {
             {branding.name}
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-white">
-            {data.destination}
+            {isReservation ? data.reservation!.restaurant_name : data.destination}
           </h1>
+          {isReservation && data.reservation!.cuisine && (
+            <p className="text-gray-300 mt-2">
+              {data.reservation!.cuisine} • {data.reservation!.neighborhood}
+            </p>
+          )}
         </div>
         
-        {/* Hotel Card */}
+        {/* Reservation Confirmation */}
+        {isReservation && data.reservation && (
+          <>
+            {/* Confirmation Badge */}
+            <div 
+              className="rounded-2xl p-6 mb-6 border text-center"
+              style={{ 
+                background: branding.cardBackground, 
+                borderColor: branding.cardBorder,
+              }}
+            >
+              <div className="text-sm text-gray-400 uppercase tracking-wide mb-2">Confirmation Number</div>
+              <div 
+                className="text-2xl font-bold"
+                style={{ color: branding.secondaryColor }}
+              >
+                {data.reservation.confirmation_number}
+              </div>
+            </div>
+            
+            {/* Reservation Details */}
+            <div 
+              className="rounded-2xl p-6 mb-6 border"
+              style={{ 
+                background: branding.cardBackground, 
+                borderColor: branding.cardBorder,
+              }}
+            >
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm text-gray-400 mb-1">Date</div>
+                  <div className="text-lg font-semibold text-white flex items-center gap-2">
+                    <span>📅</span> {data.reservation.date_formatted}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-400 mb-1">Time</div>
+                  <div className="text-lg font-semibold text-white flex items-center gap-2">
+                    <span>🕐</span> {data.reservation.time_formatted}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-400 mb-1">Party Size</div>
+                  <div className="text-lg font-semibold text-white flex items-center gap-2">
+                    <span>👥</span> {data.reservation.party_size} {data.reservation.party_size === 1 ? 'guest' : 'guests'}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-400 mb-1">Price Range</div>
+                  <div 
+                    className="text-lg font-semibold flex items-center gap-2"
+                    style={{ color: branding.secondaryColor }}
+                  >
+                    <span>💰</span> {data.reservation.price_range || '$$$'}
+                  </div>
+                </div>
+              </div>
+              
+              {data.reservation.special_requests && (
+                <div className="mt-4 pt-4 border-t border-gray-700">
+                  <div className="text-sm text-gray-400 mb-1">Special Requests</div>
+                  <div className="text-white">{data.reservation.special_requests}</div>
+                </div>
+              )}
+            </div>
+            
+            {/* Restaurant Info */}
+            {(data.reservation.address || data.reservation.phone) && (
+              <div 
+                className="rounded-2xl p-6 mb-6 border"
+                style={{ 
+                  background: branding.cardBackground, 
+                  borderColor: branding.cardBorder,
+                }}
+              >
+                {data.reservation.address && (
+                  <div className="flex items-start gap-3 mb-3">
+                    <span className="text-xl">📍</span>
+                    <div className="text-white">{data.reservation.address}</div>
+                  </div>
+                )}
+                {data.reservation.phone && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-xl">📞</span>
+                    <a href={`tel:${data.reservation.phone}`} className="text-white hover:underline">
+                      {data.reservation.phone}
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+          </>
+        )}
+        
+        {/* Hotel Card (Travel) */}
         {data.hotel && (
           <div 
             className="rounded-2xl p-6 mb-6 border"
@@ -111,7 +220,7 @@ export default async function RecommendationPage({ params }: PageProps) {
           </div>
         )}
         
-        {/* Activity Card */}
+        {/* Activity Card (Travel) */}
         {data.activity && (
           <div 
             className="rounded-2xl p-6 mb-6 border"
@@ -140,13 +249,10 @@ export default async function RecommendationPage({ params }: PageProps) {
           href={data.searchUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="block w-full font-bold text-center py-4 px-6 rounded-xl transition-all transform hover:scale-[1.02] hover:opacity-90 mb-4"
-          style={{ 
-            background: branding.buttonGradient,
-            color: branding.primaryColor,
-          }}
+          className="block w-full font-bold text-center py-4 px-6 rounded-xl transition-all transform hover:scale-[1.02] hover:opacity-90 mb-4 text-white"
+          style={{ background: branding.buttonGradient }}
         >
-          {branding.ctaText}
+          {isReservation ? 'View on OpenTable →' : branding.ctaText}
         </a>
         
         {/* Footer */}

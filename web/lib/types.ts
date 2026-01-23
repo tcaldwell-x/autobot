@@ -1,8 +1,17 @@
 /**
- * Recommendation data stored in KV
+ * Generic storable data for any plugin type
+ * Supports travel recommendations, restaurant reservations, etc.
  */
 export interface RecommendationData {
-  destination: string;
+  // Common fields
+  destination: string;  // Primary title (destination, restaurant name, etc.)
+  searchUrl: string;    // Action URL
+  createdAt: number;
+  
+  // Type indicator
+  type?: 'travel' | 'reservation' | 'search';
+  
+  // Travel (Expedia) fields
   hotel?: {
     name: string;
     price: string;
@@ -12,8 +21,24 @@ export interface RecommendationData {
     title: string;
     price: string;
   };
-  searchUrl: string;
-  createdAt: number;
+  
+  // Reservation (OpenTable) fields
+  reservation?: {
+    confirmation_number: string;
+    restaurant_name: string;
+    cuisine?: string;
+    neighborhood?: string;
+    address?: string;
+    phone?: string;
+    date: string;
+    date_formatted: string;
+    time: string;
+    time_formatted: string;
+    party_size: number;
+    rating?: number;
+    price_range?: string;
+    special_requests?: string;
+  };
 }
 
 /**

@@ -37,40 +37,40 @@ export interface BrandingConfig {
  * Default branding configuration
  * Override any value with environment variables prefixed with NEXT_PUBLIC_BRAND_
  * 
- * Default colors based on Expedia brand:
- * - Blue: #00355F (primary)
- * - Yellow: #ffc60b (accent/highlight)
+ * Default colors based on OpenTable brand:
+ * - Red: #DA3743 (primary)
  * - White: #ffffff (text)
+ * - Dark: #1a1a1a (background)
  */
 export const branding: BrandingConfig = {
   // Bot identity
-  name: process.env.NEXT_PUBLIC_BRAND_NAME || 'BookingBot',
-  tagline: process.env.NEXT_PUBLIC_BRAND_TAGLINE || 'AI-Powered Travel Recommendations',
-  logo: process.env.NEXT_PUBLIC_BRAND_LOGO || '🛫',
+  name: process.env.NEXT_PUBLIC_BRAND_NAME || 'ReservationBot',
+  tagline: process.env.NEXT_PUBLIC_BRAND_TAGLINE || 'AI-Powered Restaurant Reservations',
+  logo: process.env.NEXT_PUBLIC_BRAND_LOGO || '🍽️',
   
-  // Colors (Expedia brand)
-  primaryColor: process.env.NEXT_PUBLIC_BRAND_PRIMARY_COLOR || '#00355F',     // Expedia blue
-  secondaryColor: process.env.NEXT_PUBLIC_BRAND_SECONDARY_COLOR || '#ffc60b', // Expedia yellow
+  // Colors (OpenTable brand)
+  primaryColor: process.env.NEXT_PUBLIC_BRAND_PRIMARY_COLOR || '#1a1a1a',     // Dark background
+  secondaryColor: process.env.NEXT_PUBLIC_BRAND_SECONDARY_COLOR || '#DA3743', // OpenTable red
   accentColor: process.env.NEXT_PUBLIC_BRAND_ACCENT_COLOR || '#ffffff',       // White
   
   // Gradients
   backgroundGradient: process.env.NEXT_PUBLIC_BRAND_BG_GRADIENT || 
-    'linear-gradient(135deg, #00355F 0%, #001a2e 50%, #002244 100%)',
+    'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%)',
   buttonGradient: process.env.NEXT_PUBLIC_BRAND_BUTTON_GRADIENT || 
-    'linear-gradient(90deg, #ffc60b, #ffdb4d)',
+    'linear-gradient(90deg, #DA3743, #ff5a5a)',
   textGradient: process.env.NEXT_PUBLIC_BRAND_TEXT_GRADIENT || 
-    'linear-gradient(90deg, #ffc60b, #ffe066)',
+    'linear-gradient(90deg, #DA3743, #ff6b6b)',
   
   // Card styling
-  cardBackground: process.env.NEXT_PUBLIC_BRAND_CARD_BG || 'rgba(0, 53, 95, 0.7)',
-  cardBorder: process.env.NEXT_PUBLIC_BRAND_CARD_BORDER || 'rgba(255, 198, 11, 0.3)',
+  cardBackground: process.env.NEXT_PUBLIC_BRAND_CARD_BG || 'rgba(45, 45, 45, 0.9)',
+  cardBorder: process.env.NEXT_PUBLIC_BRAND_CARD_BORDER || 'rgba(218, 55, 67, 0.3)',
   
   // Attribution
-  poweredBy: process.env.NEXT_PUBLIC_BRAND_POWERED_BY || 'Powered by Expedia',
-  poweredByUrl: process.env.NEXT_PUBLIC_BRAND_POWERED_BY_URL || 'https://www.expedia.com',
+  poweredBy: process.env.NEXT_PUBLIC_BRAND_POWERED_BY || 'Powered by OpenTable',
+  poweredByUrl: process.env.NEXT_PUBLIC_BRAND_POWERED_BY_URL || 'https://www.opentable.com',
   
   // CTA
-  ctaText: process.env.NEXT_PUBLIC_BRAND_CTA_TEXT || 'Book Now →',
+  ctaText: process.env.NEXT_PUBLIC_BRAND_CTA_TEXT || 'View on OpenTable →',
 };
 
 /**
