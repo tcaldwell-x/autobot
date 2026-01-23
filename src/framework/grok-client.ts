@@ -120,10 +120,9 @@ export async function processWithGrok(thread: ConversationThread): Promise<GrokP
 
   const tools = pluginManager.getTools();
   const toolResults: ToolResult[] = [];
-  const hasImages = imageUrls.length > 0;
 
-  // Initial call to Grok (use vision model if images present)
-  let response = await callGrok(messages, tools, hasImages);
+  // Initial call to Grok
+  let response = await callGrok(messages, tools);
   let iterations = 0;
   const maxIterations = 5;
 
@@ -155,8 +154,8 @@ export async function processWithGrok(thread: ConversationThread): Promise<GrokP
       });
     }
 
-    // Call Grok again with the tool results (subsequent calls don't need images again)
-    response = await callGrok(messages, tools, false);
+    // Call Grok again with the tool results
+    response = await callGrok(messages, tools);
   }
 
   // Response content is always a string (multimodal is input only)
@@ -202,9 +201,8 @@ export async function processWithGrok(thread: ConversationThread): Promise<GrokP
 /**
  * Call the Grok API
  */
-async function callGrok(messages: Message[], tools?: Tool[], hasImages = false): Promise<ChatCompletionResponse> {
-  // Use grok-4 for vision capabilities, grok-3 for text-only
-  const model = hasImages ? 'grok-4-1-fast-reasoning' : 'grok-3-latest';
+async function callGrok(messages: Message[], tools?: Tool[]): Promise<ChatCompletionResponse> {
+  const model = 'grok-4-1-fast-reasoning';
   
   const body: Record<string, unknown> = {
     model,
