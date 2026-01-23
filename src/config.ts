@@ -18,13 +18,15 @@ export const config = {
   // Website URL (for OG preview links)
   websiteUrl: process.env.WEBSITE_URL || 'https://autobot.vercel.app',
   
-  // Expedia Group API credentials (optional)
-  expedia: {
-    apiKey: process.env.EXPEDIA_API_KEY || '',
-    sharedSecret: process.env.EXPEDIA_SHARED_SECRET || '',
-    affiliateId: process.env.EXPEDIA_AFFILIATE_ID || '',
-    // Use sandbox mode for testing without real credentials
-    useSandbox: process.env.EXPEDIA_USE_SANDBOX === 'true' || !process.env.EXPEDIA_API_KEY,
+  // Grok API (xAI) for intelligent conversation understanding
+  grokApiKey: process.env.GROK_API_KEY || '',
+  
+  // Plugin configuration
+  plugin: {
+    // Which plugin to use (default: expedia)
+    id: process.env.BOT_PLUGIN || 'expedia',
+    // Sandbox mode for testing
+    sandboxMode: process.env.PLUGIN_SANDBOX_MODE === 'true' || process.env.NODE_ENV !== 'production',
   },
   
   // X API endpoints
