@@ -3,6 +3,7 @@ import { Redis } from '@upstash/redis';
 import { RecommendationData } from '@/lib/types';
 
 export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
 
 // Branding config (edge runtime can't use Node.js modules, so we inline the config)
