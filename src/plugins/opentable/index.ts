@@ -749,13 +749,14 @@ export const opentablePlugin: BotPlugin = {
   },
   
   extractStorableData(toolResults: ToolResult[], grokMessage?: string): StorableData | null {
-    // Look for a reservation confirmation first
+    // FIRST PASS: Look for a reservation confirmation (highest priority)
     for (const result of toolResults) {
       if (!result.success || !result.data) continue;
       
       const data = result.data as any;
       
       if (data.type === 'reservation') {
+        console.log(`[OpenTable] Found reservation confirmation: ${data.confirmation_number}`);
         return {
           title: data.restaurant.name,
           subtitle: `${data.date_formatted} at ${data.time_formatted}`,
@@ -775,13 +776,22 @@ export const opentablePlugin: BotPlugin = {
             restaurant: data.restaurant,
             date: data.date,
             time: data.time,
+            time_formatted: data.time_formatted,
+            date_formatted: data.date_formatted,
+            timezone: data.timezone,
             party_size: data.party_size,
             special_requests: data.special_requests,
           },
         };
       }
+    }
+    
+    // SECOND PASS: Look for restaurant search results (only if no reservation found)
+    for (const result of toolResults) {
+      if (!result.success || !result.data) continue;
       
-      // If searching, try to find the restaurant Grok mentioned in the response
+      const data = result.data as any;
+      
       if (data.type === 'restaurants' && data.restaurants?.length > 0) {
         let selectedRestaurant = data.restaurants[0]; // Default to first
         
